@@ -1,0 +1,15 @@
+# Keep text files LF in the index and the working tree on every OS, matching Biome's
+# "lineEnding": "lf". This overrides a global core.autocrlf, which would otherwise check files
+# out with CRLF and make `pnpm check` rewrite them.
+* text=auto eol=lf
+
+# Binary assets: never convert.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary

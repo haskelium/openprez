@@ -1,0 +1,8 @@
+node_modules/
+.pnpm-store/
+dist/
+*.local
+
+# Local authoring sources and extracted working files; keep the inbox in fresh clones.
+/sources/*
+!/sources/.gitkeep

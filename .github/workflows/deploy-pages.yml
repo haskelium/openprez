@@ -1,0 +1,75 @@
+name: Validate and deploy presentation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Superseded pull-request runs are cancelled; main-branch runs finish so a Pages deployment is
+# never interrupted midway.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Reads the pnpm version from the packageManager field in package.json.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm validate
+
+      - name: Build isolated user-deck artifact
+        run: OPENPREZ_BUILD_DIR=dist/ci-user pnpm prez
+
+      - name: Build isolated showcase artifact
+        run: OPENPREZ_BUILD_DIR=dist/ci-showcase pnpm prez:showcase
+
+      # Also opens the two artifacts above as local files, so the deployed one is the tested one.
+      - name: Run focused browser checks
+        env:
+          OPENPREZ_STANDALONE_ARTIFACTS: dist/ci-user/prez.html,dist/ci-showcase/prez.html
+        run: pnpm test:browser
+
+      - name: Prepare Pages artifact from validated showcase
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p site
+          cp dist/ci-showcase/prez.html site/index.html
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        with:
+          path: site
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

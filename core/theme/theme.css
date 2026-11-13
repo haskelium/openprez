@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@source not "../../openprez";
+
+/* The active template supplies these values as CSS variables (see core/template/style.ts),
+   applied by the app composition entry. Token names stay the foundation's stable vocabulary. */
+@theme static {
+  --color-theme-primary: var(--template-color-primary);
+  --color-theme-on-primary: var(--template-color-on-primary);
+  --color-theme-accent1: var(--template-color-accent1);
+  --color-theme-accent2: var(--template-color-accent2);
+  --color-theme-accent3: var(--template-color-accent3);
+  --color-theme-accent4: var(--template-color-accent4);
+  --color-theme-accent5: var(--template-color-accent5);
+  --color-theme-neutral: var(--template-color-neutral);
+  --color-theme-data1: var(--template-color-data1);
+  --color-theme-data2: var(--template-color-data2);
+  --color-theme-data3: var(--template-color-data3);
+  --color-presenter-background: #171b24;
+  --color-presenter-surface: #222834;
+  --color-presenter-text: #edf0f5;
+  --color-presenter-muted: #aab2bf;
+  --color-presenter-border: #3a4352;
+  --color-presenter-control: #303847;
+  --color-presenter-ink: #202939;
+  --color-presenter-ink-muted: #596476;
+  --color-presenter-now-soft: #1946b8;
+  --color-presenter-now: #4d8df7;
+  --color-presenter-next-soft: #1f3426;
+  --color-presenter-next: #47a065;
+  --color-presenter-step: #d6a927;
+
+  --font-body: var(--template-font-body);
+  --font-display: var(--template-font-display);
+  --font-mono: var(--template-font-mono);
+  --font-sans: var(--template-font-body);
+}
+
+/* The utility names the theme reads via Tailwind; the pair itself follows the slide's tone. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+}
+
+/* Surface pairs are resolved by the player/export/presenter from the active template's
+   declared tones (see core/template/style.ts toneStyleVariables). These values
+   are only the fallback for surfaces rendered without a template, such as presenter
+   previews in tests. */
+:root {
+  --surface: var(--color-theme-on-primary);
+  --on-surface: var(--color-theme-primary);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #000;
+  overflow: hidden;
+}
+
+/* Slide typography scales with the fixed canvas; prevent mobile text inflation. */
+[data-stage] {
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+.presenter-view {
+  --surface: var(--color-presenter-surface);
+  --on-surface: var(--color-presenter-text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.footer-actions {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.footer-actions:hover,
+.footer-actions:focus-within {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .footer-actions {
+    opacity: 1;
+  }
+}

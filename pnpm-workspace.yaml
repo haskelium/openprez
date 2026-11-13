@@ -1,0 +1,5 @@
+# pnpm 11 (strictDepBuilds) fails installs while a dependency build script is
+# unreviewed. core-js (transitive dependency of jspdf) only prints a funding
+# banner in its postinstall, so its build is denied rather than allowed.
+allowBuilds:
+  core-js: false

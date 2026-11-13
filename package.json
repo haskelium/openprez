@@ -1,0 +1,59 @@
+{
+  "name": "openprez",
+  "version": "0.12.0",
+  "description": "Code-authored presentation foundation: a local, player-only web app that presents one React/TypeScript slide deck with speaker notes, PDF export and a fixed 1920x1080 stage.",
+  "license": "MIT",
+  "author": "Stephane Schitter",
+  "keywords": [
+    "presentation",
+    "slides",
+    "react",
+    "typescript",
+    "vite",
+    "speaker-notes",
+    "pdf-export"
+  ],
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.27.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prez": "vite build --mode standalone && node scripts/standalone/cli.mjs",
+    "prez:showcase": "vite build --mode showcase-standalone && node scripts/standalone/cli.mjs showcase",
+    "start": "vite build && vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "test:browser": "node scripts/browser-tests/run.mjs",
+    "boundaries": "node scripts/boundaries.mjs",
+    "validate": "pnpm lint && node scripts/boundaries.mjs && pnpm typecheck && pnpm test && pnpm build",
+    "check": "biome check --write . && node scripts/boundaries.mjs && pnpm typecheck && pnpm build"
+  },
+  "dependencies": {
+    "html-to-image": "^1.11.13",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^1.72.0",
+    "motion": "^14.13.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.7",
+    "@tailwindcss/vite": "^4.3.5",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "jsdom": "^31.0.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

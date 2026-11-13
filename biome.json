@@ -1,0 +1,209 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.6.7/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": ["**", "!openprez", "!dist", "!node_modules", "!.agents"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended"
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["core/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@presentation/deck": "The foundation must stay deck-agnostic; the app/main.tsx composition entry imports the deck.",
+                  "@showcase/deck": "The foundation must stay deck-agnostic; the app/main.tsx composition entry imports the deck."
+                },
+                "patterns": [
+                  {
+                    "group": [
+                      "**/presentation",
+                      "**/presentation/**",
+                      "**/showcase",
+                      "**/showcase/**"
+                    ],
+                    "message": "The foundation must not import deck content (presentation/ or showcase/)."
+                  },
+                  {
+                    "group": ["@template/**", "**/templates/**"],
+                    "message": "The foundation must not import a concrete template; it defines the contract only."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["presentation/*", "showcase/*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@core/**",
+                      "@presentation/**",
+                      "@showcase/**",
+                      "@template/**",
+                      "../**"
+                    ],
+                    "message": "Deck code may only import from \"@core\" and from files inside its own deck folder."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["presentation/*/*", "showcase/*/*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@core/**",
+                      "@presentation/**",
+                      "@showcase/**",
+                      "@template/**",
+                      "../../**"
+                    ],
+                    "message": "Deck code may only import from \"@core\" and from files inside its own deck folder."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["presentation/*/*/*", "showcase/*/*/*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@core/**",
+                      "@presentation/**",
+                      "@showcase/**",
+                      "@template/**",
+                      "../../../**"
+                    ],
+                    "message": "Deck code may only import from \"@core\" and from files inside its own deck folder."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["presentation/*/*/*/**", "showcase/*/*/*/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@core/**",
+                      "@presentation/**",
+                      "@showcase/**",
+                      "@template/**",
+                      "../../../../**"
+                    ],
+                    "message": "Deck code may only import from \"@core\" and from files inside its own deck folder; keep deck folders at most four levels deep."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["templates/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@core/**",
+                      "@presentation/**",
+                      "@showcase/**",
+                      "@template/**",
+                      "**/presentation/**",
+                      "**/showcase/**"
+                    ],
+                    "message": "Templates import only the public \"@core\" entry and their own sibling files; never deck content or deep core internals."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
