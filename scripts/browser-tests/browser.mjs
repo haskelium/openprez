@@ -21,7 +21,7 @@ export async function withBrowser(scenario) {
       break;
     } catch (error) {
       if (attempt === 2) throw error;
-      console.warn(`Browser startup failed; retrying with a fresh profile: ${error.message}`);
+      console.warn("Browser startup failed; retrying with a fresh profile.");
     }
   }
   const { child, profile, port } = launch;
