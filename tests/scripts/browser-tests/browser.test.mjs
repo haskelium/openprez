@@ -62,7 +62,9 @@ describe.skipIf(process.platform === "win32")("browser startup", () => {
       const profiles = mocks.waitForDevtoolsPort.mock.calls.map(([profile]) => profile);
       assert.notEqual(profiles[0], profiles[1]);
       for (const profile of profiles) await assert.rejects(access(profile));
-      assert.match(warning.mock.calls[0][0], /startup timed out/);
+      assert.deepEqual(warning.mock.calls, [
+        ["Browser startup failed; retrying with a fresh profile."],
+      ]);
       assert.equal(client.close.mock.calls.length, 1);
     });
   });
