@@ -66,7 +66,7 @@ export class CdpClient {
   }
 }
 
-export async function waitForDevtoolsPort(profilePath, process, timeoutMs = 10_000) {
+export async function waitForDevtoolsPort(profilePath, process, timeoutMs = 30_000) {
   const portFile = `${profilePath}/DevToolsActivePort`;
   const deadline = Date.now() + timeoutMs;
   let lastError;
