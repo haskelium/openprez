@@ -14,9 +14,34 @@ export const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 /** Launch an isolated headless Chromium and run `scenario` against its first page. */
 export async function withBrowser(scenario) {
   const browser = await findBrowser();
+  let launch;
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      launch = await launchBrowser(browser);
+      break;
+    } catch (error) {
+      if (attempt === 2) throw error;
+      console.warn(`Browser startup failed; retrying with a fresh profile: ${error.message}`);
+    }
+  }
+  const { child, profile, port } = launch;
+  let client;
+  try {
+    const page = (await listPageTargets(port)).find((target) => target.webSocketDebuggerUrl);
+    if (!page) throw new Error("Chromium did not expose a page target");
+    client = await connectPage(page.webSocketDebuggerUrl);
+    await scenario({ client, port });
+  } finally {
+    await client?.close();
+    await stopProcess(child);
+    await rm(profile, { recursive: true, force: true });
+  }
+}
+
+async function launchBrowser(browser) {
   const profile = await mkdtemp(join(tmpdir(), "openprez-browser-"));
   let child;
-  let client;
+  let stderr = "";
   try {
     child = spawn(
       browser,
@@ -31,22 +56,24 @@ export async function withBrowser(scenario) {
         `--user-data-dir=${profile}`,
         "about:blank",
       ],
-      { stdio: "ignore", detached: process.platform !== "win32" },
+      { stdio: ["ignore", "ignore", "pipe"], detached: process.platform !== "win32" },
     );
+    child.stderr.on("data", (chunk) => {
+      stderr = (stderr + chunk.toString()).slice(-8192);
+    });
     const launchFailure = new Promise((_, reject) => {
       child.once("error", (error) =>
         reject(new Error(`Could not launch browser at ${browser}: ${error.message}`)),
       );
     });
     const port = await Promise.race([waitForDevtoolsPort(profile, child), launchFailure]);
-    const page = (await listPageTargets(port)).find((target) => target.webSocketDebuggerUrl);
-    if (!page) throw new Error("Chromium did not expose a page target");
-    client = await connectPage(page.webSocketDebuggerUrl);
-    await scenario({ client, port });
-  } finally {
-    await client?.close();
+    return { child, profile, port };
+  } catch (error) {
     await stopProcess(child);
     await rm(profile, { recursive: true, force: true });
+    throw new Error(
+      `${error.message}${stderr.trim() ? `\nBrowser stderr:\n${stderr.trim()}` : ""}`,
+    );
   }
 }
 
@@ -185,7 +212,7 @@ async function availablePort() {
 
 /** Stop a detached child and its process group, escalating to SIGKILL after three seconds. */
 export async function stopProcess(child) {
-  if (!child || child.exitCode !== null) return;
+  if (!child || child.exitCode !== null || child.signalCode !== null) return;
   const exited = new Promise((resolve) => child.once("exit", () => resolve(true)));
   signalProcessGroup(child, "SIGTERM");
   if (!(await Promise.race([exited, delay(3000).then(() => false)]))) {

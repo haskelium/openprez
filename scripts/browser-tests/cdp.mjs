@@ -71,8 +71,10 @@ export async function waitForDevtoolsPort(profilePath, process, timeoutMs = 30_0
   const deadline = Date.now() + timeoutMs;
   let lastError;
   while (Date.now() < deadline) {
-    if (process.exitCode !== null) {
-      throw new Error(`Browser exited before CDP startup (code ${process.exitCode})`);
+    if (process.exitCode !== null || process.signalCode !== null) {
+      throw new Error(
+        `Browser exited before CDP startup (${process.signalCode ? `signal ${process.signalCode}` : `code ${process.exitCode}`})`,
+      );
     }
     try {
       const file = await readFile(portFile, "utf8");
