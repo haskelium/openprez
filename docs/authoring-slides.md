@@ -24,6 +24,7 @@ Steps are 1-based. The slide component receives the current `step` and total `st
 - Use the active template's named tones rather than hardcoding shared surface colors.
 - Prefer SVG-native shapes and text for diagrams that must export cleanly.
 - Use `useExportMode()` for custom animation that needs a settled PDF state.
+- Make destinations clickable in the PDF by wrapping them in `<a href>` with an absolute `http(s)` or `mailto:` URI; the export overlays a clickable hotspot over each visible anchor. Relative or fragment-only links and non-anchor controls stay inert in the PDF.
 - Honor reduced motion for looping effects and non-transform animation.
 - Keep all assets local so the deck works without a network connection.
 - Do not capture navigation keys unless an input inside the slide has focus.

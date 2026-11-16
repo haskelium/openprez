@@ -15,6 +15,7 @@ Decks import foundation features from `@core`, whose public exports are collecte
 - The active template's optional `footerHeight` sets the footer band's height; `SLIDE_AREA_HEIGHT` was removed in favor of `useSlideArea()`, which resolves `1080 − footerHeight`.
 - `StageScaleContext` exposes the current display scale for components that need it.
 - `useExportMode` identifies static PDF/export rendering.
+- Exported pages keep the visible `a[href]` hyperlinks clickable as link hotspots; only absolute `http(s)` and `mailto:` URIs become hotspots.
 
 ## Shared visual components
 

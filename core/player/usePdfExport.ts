@@ -2,7 +2,9 @@ import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { Deck } from "./deck";
 import { type ExportFrame, pdfFileName, selectExportFrames } from "./exportFrames";
 import { type ExportLibraries, loadExportLibraries } from "./exportLibraries";
+import { collectExportLinks } from "./exportLinks";
 import { resolvePdfExportDate } from "./presentationDate";
+import { STAGE_WIDTH } from "./Stage";
 
 const PDF_PAGE_WIDTH = 960;
 const PDF_PAGE_HEIGHT = 540;
@@ -104,6 +106,17 @@ export function usePdfExport({
         if (!isCurrent()) return;
         if (!element) throw new Error("The PDF export stage is not ready");
 
+        // Measure while the settled copy is still mounted: the visible anchors become
+        // clickable hotspots over the same pixels on the freshly painted page.
+        const stagePixelsToPoints = PDF_PAGE_WIDTH / STAGE_WIDTH;
+        const links = collectExportLinks(element).map(({ x, y, width, height, url }) => ({
+          x: x * stagePixelsToPoints,
+          y: y * stagePixelsToPoints,
+          width: width * stagePixelsToPoints,
+          height: height * stagePixelsToPoints,
+          url,
+        }));
+
         const image = await toJpeg(element, {
           pixelRatio: PDF_CAPTURE_PIXEL_RATIO,
           quality: PDF_IMAGE_QUALITY,
@@ -111,6 +124,9 @@ export function usePdfExport({
         if (!isCurrent()) return;
         if (frameIndex > 0) run.document.addPage();
         run.document.addImage(image, "JPEG", 0, 0, PDF_PAGE_WIDTH, PDF_PAGE_HEIGHT);
+        for (const link of links) {
+          run.document.link(link.x, link.y, link.width, link.height, { url: link.url });
+        }
         setLifecycle({ ...lifecycle, frameIndex: frameIndex + 1 });
       } catch (error) {
         fail(error);

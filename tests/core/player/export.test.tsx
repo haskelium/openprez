@@ -2,6 +2,7 @@
 
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { Deck } from "../../../core/player/deck";
 import { defineDeck, defineSlide } from "../../../core/player/deck";
 import type { ExportLibraries } from "../../../core/player/exportLibraries";
 import { Player } from "../../../core/player/Player";
@@ -74,6 +75,12 @@ class FakePdf {
   addImage(image: string) {
     this.images.push(image);
   }
+
+  link(x: number, y: number, width: number, height: number, options: { url: string }) {
+    FakePdf.links.push({ x, y, width, height, url: options.url });
+  }
+
+  static links: { x: number; y: number; width: number; height: number; url: string }[] = [];
 
   save(name: string) {
     if (FakePdf.saveFailuresRemaining > 0) {
@@ -384,5 +391,147 @@ describe("Player PDF export lazy loading", () => {
     await waitFor(() => expect(FakePdf.saved).toEqual(["lazy-export-deck.pdf"]));
     expect(libs.loadCalls).toBe(1);
     expect(FakePdf.instances).toHaveLength(1);
+  });
+});
+
+const CAPTURE_RECT = { left: 0, top: 0, width: 1920, height: 1080 };
+
+/** jsdom has no layout; anchors register their geometry by href, so the export copy measures like the live stage. */
+const anchorGeometry = new Map<
+  string,
+  { left: number; top: number; width: number; height: number; clientRects: number }
+>();
+
+function stubAnchorGeometry(): () => void {
+  const rectSpy = vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (
+    this: Element,
+  ) {
+    if (this.hasAttribute?.("data-export-capture")) {
+      return {
+        ...CAPTURE_RECT,
+        right: CAPTURE_RECT.width,
+        bottom: CAPTURE_RECT.height,
+      } as unknown as DOMRect;
+    }
+    const href = this.getAttribute?.("href");
+    const entry = href ? anchorGeometry.get(href) : undefined;
+    const rect = entry ?? { left: 0, top: 0, width: 0, height: 0, clientRects: 0 };
+    return {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+      right: rect.left + rect.width,
+      bottom: rect.top + rect.height,
+    } as unknown as DOMRect;
+  });
+  const rectsSpy = vi.spyOn(Element.prototype, "getClientRects").mockImplementation(function (
+    this: Element,
+  ) {
+    const href = this.getAttribute?.("href");
+    return Array.from(
+      { length: (href ? anchorGeometry.get(href)?.clientRects : undefined) ?? 0 },
+      () => ({ item: () => null, length: 1 }),
+    ) as unknown as DOMRectList;
+  });
+  return () => {
+    rectSpy.mockRestore();
+    rectsSpy.mockRestore();
+  };
+}
+
+function LinkedSlide() {
+  return (
+    <div>
+      <a href="https://example.com/guide" data-testid="visible">
+        OpenPrez guide
+      </a>
+      <a href="#nowhere" data-testid="relative">
+        OpenPrez repository
+      </a>
+      <a href="https://example.com/hidden" data-testid="hidden">
+        OpenPrez showcase
+      </a>
+    </div>
+  );
+}
+
+function anchorDeck(): Deck {
+  return defineDeck({
+    title: "Linked Deck",
+    slides: [defineSlide({ id: "links", Component: LinkedSlide })],
+  });
+}
+
+describe("Player PDF export link hotspots", () => {
+  it("overlays visible anchors as clickable hotspots, in page points", async () => {
+    const captures: CaptureRecord[] = [];
+    const libs = librariesWith(captures);
+    state.load = libs.load;
+    FakePdf.instances = [];
+    FakePdf.saved = [];
+    FakePdf.links = [];
+    // Stage pixels halve into the 960x540 pt page; the hidden anchor produces nothing.
+    const restore = stubAnchorGeometry();
+    try {
+      // Geometry is assigned before export; it keys by href so the offscreen export copy
+      // measures identically to the live stage.
+      render(<Player deck={anchorDeck()} template={template} />);
+      anchorGeometry.set("https://example.com/guide", {
+        left: 400,
+        top: 200,
+        width: 200,
+        height: 30,
+        clientRects: 1,
+      });
+      // A relative href resolves the same in both mounts but is not exportable.
+      anchorGeometry.set("#nowhere", {
+        left: 620,
+        top: 200,
+        width: 100,
+        height: 30,
+        clientRects: 1,
+      });
+      anchorGeometry.set("https://example.com/hidden", {
+        left: 740,
+        top: 200,
+        width: 200,
+        height: 30,
+        clientRects: 0,
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByText("Export"));
+      });
+      await waitFor(() => expect(FakePdf.saved).toEqual(["linked-deck.pdf"]));
+
+      expect(FakePdf.links).toEqual([
+        { x: 200, y: 100, width: 100, height: 15, url: "https://example.com/guide" },
+      ]);
+    } finally {
+      restore();
+      anchorGeometry.clear();
+    }
+  });
+
+  it("adds no hotspot when a page shows no visible anchors", async () => {
+    const captures: CaptureRecord[] = [];
+    const libs = librariesWith(captures);
+    state.load = libs.load;
+    FakePdf.instances = [];
+    FakePdf.saved = [];
+    FakePdf.links = [];
+    const restore = stubAnchorGeometry();
+    try {
+      render(<Player deck={deck} template={template} />);
+      await act(async () => {
+        fireEvent.click(screen.getByText("Export"));
+      });
+      await waitFor(() => expect(FakePdf.saved).toEqual(["lazy-export-deck.pdf"]));
+
+      expect(FakePdf.links).toEqual([]);
+    } finally {
+      restore();
+    }
   });
 });
