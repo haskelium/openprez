@@ -1,9 +1,9 @@
 import {
-  SLIDE_AREA_HEIGHT,
   STAGE_WIDTH,
   StageScaleContext,
   useExportMode,
   useMotionAllowance,
+  useSlideArea,
 } from "@core";
 import { ArrowDownToLine, RotateCcw } from "lucide-react";
 import {
@@ -20,7 +20,7 @@ import {
 import type { Arena, Body } from "./physics";
 import { createPlayground, type Playground, type PlaygroundMode, type Point } from "./playground";
 
-const ARENA: Arena = { width: STAGE_WIDTH, height: SLIDE_AREA_HEIGHT };
+const ARENA_WIDTH = STAGE_WIDTH;
 const LEFT_MARGIN = 128;
 const CARD_TOP = 430;
 const CARD_WIDTH = 360;
@@ -179,6 +179,7 @@ function composeLayout(sizes: Size[]): Body[] {
 }
 
 function useFontMeasuredPlayground(
+  arenaSize: Arena,
   arenaRef: MutableRefObject<HTMLDivElement | null>,
   elements: MutableRefObject<(HTMLDivElement | null)[]>,
   ambient: boolean,
@@ -210,7 +211,7 @@ function useFontMeasuredPlayground(
           height: rect ? rect.height / stageScale : 0,
         };
       });
-      created = createPlayground(ARENA, composeLayout(sizes), ambient, setMode);
+      created = createPlayground(arenaSize, composeLayout(sizes), ambient, setMode);
       if (cancelled) {
         created.stop();
         return;
@@ -223,7 +224,7 @@ function useFontMeasuredPlayground(
       cancelled = true;
       created?.stop();
     };
-  }, [ambient, stageScale, arenaRef, elements, setMode]);
+  }, [arenaSize, ambient, stageScale, arenaRef, elements, setMode]);
 
   return setup?.ambient === ambient && setup.stageScale === stageScale && stageScale > 0
     ? setup.playground
@@ -234,10 +235,19 @@ export function InteractiveSlide() {
   const { ambient } = useMotionAllowance();
   const exportMode = useExportMode();
   const stageScale = useContext(StageScaleContext);
+  const slideArea = useSlideArea();
+  const arenaSize: Arena = { width: ARENA_WIDTH, height: slideArea.height };
   const arenaRef = useRef<HTMLDivElement>(null);
   const elements = useRef<(HTMLDivElement | null)[]>([]);
   const [mode, setMode] = useState<PlaygroundMode>("composed");
-  const playground = useFontMeasuredPlayground(arenaRef, elements, ambient, stageScale, setMode);
+  const playground = useFontMeasuredPlayground(
+    arenaSize,
+    arenaRef,
+    elements,
+    ambient,
+    stageScale,
+    setMode,
+  );
 
   function toStage(event: PointerEvent): Point {
     const arena = arenaRef.current;

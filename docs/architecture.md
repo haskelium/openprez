@@ -37,7 +37,7 @@ The foundation must remain generic. It must not import the active deck, the show
 
 The player renders one deck as an ordered list of slides. Each slide has an id, a component, an optional tone, notes, and a number of build steps. Navigation can move by step, key frame, or slide. The URL stores the current slide and step so a reload can restore the position.
 
-The stage is fixed at `1920x1080`: slides occupy `1920x1016`, and the template-owned footer occupies the remaining `64px`. The stage scales to the available window; slide components should use stage pixels rather than responsive breakpoints.
+The stage is fixed at `1920x1080`: the active template's `footerHeight` sets the footer band's height (64px by default), and slides occupy the remaining stage height. The stage scales to the available window; slide components should use stage pixels rather than responsive breakpoints, and `useSlideArea()` resolves the exact slide-area dimensions.
 
 PDF orchestration lives in the player's `usePdfExport` hook. It captures through an owned stage ref, lazy-loads capture libraries, and scopes asynchronous work to an export generation so failures and unmounts cannot contaminate later downloads. The offscreen export host is inert and hidden from assistive technology while retaining its settled visual content for capture.
 

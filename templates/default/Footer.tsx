@@ -25,7 +25,7 @@ export function Footer({ controls, date, copyrightNotice, Brand = Logo }: Footer
   return (
     <footer
       data-footer
-      className="grid h-full grid-cols-[1fr_auto_1fr] items-center gap-8 border-t border-current/15 bg-surface px-12 font-body text-[18px] text-on-surface"
+      className="grid h-full grid-cols-[1fr_auto_1fr] items-center gap-8 bg-surface px-12 font-body text-[18px] text-on-surface"
     >
       <div className="flex items-center gap-6">
         <Brand className="h-6 shrink-0" />
@@ -87,7 +87,7 @@ export function ExportFooter({
     <footer
       data-footer
       data-pdf-footer
-      className="grid h-full grid-cols-[1fr_auto_1fr] items-center gap-8 border-t border-current/15 bg-surface px-12 font-body text-[18px] text-on-surface"
+      className="grid h-full grid-cols-[1fr_auto_1fr] items-center gap-8 bg-surface px-12 font-body text-[18px] text-on-surface"
     >
       <div className="flex items-center gap-6">
         <Brand className="h-6 shrink-0" />

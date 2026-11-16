@@ -19,7 +19,13 @@ export type {
 } from "./player/deck";
 export { defineDeck, defineSlide } from "./player/deck";
 export { useExportMode } from "./player/export-context";
-export { SLIDE_AREA_HEIGHT, STAGE_WIDTH, StageScaleContext } from "./player/Stage";
+export {
+  type SlideArea,
+  SlideAreaContext,
+  STAGE_WIDTH,
+  StageScaleContext,
+  useSlideArea,
+} from "./player/Stage";
 export { useStep } from "./player/step-context";
 export type {
   ExportFooterRenderProps,

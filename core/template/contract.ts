@@ -100,6 +100,11 @@ export interface PresentationTemplate {
   fonts?: TemplateFontRoles;
   /** Optional footer-only brand mark, shared by live and PDF footers. Defaults to Logo. */
   FooterBrand?: ComponentType<FooterBrandProps>;
+  /**
+   * Optional footer band height in stage pixels. When omitted, the footer band keeps the
+   * 64 stage-pixel default and the slide area fills the remaining stage height.
+   */
+  footerHeight?: number;
   Footer: ComponentType<FooterRenderProps>;
   ExportFooter: ComponentType<ExportFooterRenderProps>;
 }

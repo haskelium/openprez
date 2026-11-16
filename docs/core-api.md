@@ -11,7 +11,8 @@ Decks import foundation features from `@core`, whose public exports are collecte
 
 ## Stage and export
 
-- `STAGE_WIDTH` and `SLIDE_AREA_HEIGHT` describe the fixed stage dimensions.
+- `STAGE_WIDTH` and `useSlideArea()` describe the fixed stage width and the template-derived slide area.
+- The active template's optional `footerHeight` sets the footer band's height; `SLIDE_AREA_HEIGHT` was removed in favor of `useSlideArea()`, which resolves `1080 − footerHeight`.
 - `StageScaleContext` exposes the current display scale for components that need it.
 - `useExportMode` identifies static PDF/export rendering.
 

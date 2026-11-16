@@ -1,8 +1,9 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Deck } from "../player/deck";
 import { nextStepPosition, type Position } from "../player/navigation";
-import { SLIDE_AREA_HEIGHT, STAGE_WIDTH } from "../player/Stage";
+import { STAGE_HEIGHT, STAGE_WIDTH } from "../player/Stage";
 import type { PresentationTemplate } from "../template/contract";
+import { DEFAULT_FOOTER_HEIGHT, resolveFooterHeight } from "../template/footer-height";
 import { SlidePreview } from "./SlidePreview";
 
 /** The next preview's width, and height, as a share of the current one. */
@@ -17,6 +18,8 @@ interface PreviewColumn {
   nextLabelHeight: number;
   /** Row gap between the four stacked children (label, preview, label, preview). */
   gap: number;
+  /** Content aspect of the previewed slide area, from the active template's footer height. */
+  aspect: number;
 }
 
 /**
@@ -30,8 +33,8 @@ export function previewWidths({
   currentLabelHeight,
   nextLabelHeight,
   gap,
+  aspect,
 }: PreviewColumn): { current: number; next: number } {
-  const aspect = STAGE_WIDTH / SLIDE_AREA_HEIGHT;
   const labelHeight = currentLabelHeight + nextLabelHeight;
   const availableHeight = Math.max(height - labelHeight - gap * 3, 0);
   const current = Math.min(width, (availableHeight / (1 + NEXT_SIZE_RATIO)) * aspect);
@@ -50,6 +53,11 @@ export function PresenterPreviews({ deck, position, template }: PresenterPreview
   const nowLabelRef = useRef<HTMLParagraphElement>(null);
   const nextLabelRef = useRef<HTMLParagraphElement>(null);
   const [widths, setWidths] = useState({ current: 0, next: 0 });
+
+  // A previewer without a resolved template falls back to the default 64px-footer split.
+  const footerHeight = template ? resolveFooterHeight(template) : DEFAULT_FOOTER_HEIGHT;
+  const slideAreaHeight = STAGE_HEIGHT - footerHeight;
+  const aspect = STAGE_WIDTH / slideAreaHeight;
 
   const stepCounts = useMemo(() => deck.slides.map((slide) => slide.steps), [deck]);
   const upcoming = nextStepPosition(stepCounts, position);
@@ -70,6 +78,7 @@ export function PresenterPreviews({ deck, position, template }: PresenterPreview
         currentLabelHeight: nowLabel.getBoundingClientRect().height,
         nextLabelHeight: nextLabel.getBoundingClientRect().height,
         gap,
+        aspect,
       });
       setWidths((previous) =>
         previous.current === measured.current && previous.next === measured.next
@@ -83,7 +92,7 @@ export function PresenterPreviews({ deck, position, template }: PresenterPreview
     observer.observe(nowLabel);
     observer.observe(nextLabel);
     return () => observer.disconnect();
-  }, []);
+  }, [aspect]);
 
   return (
     <section ref={sectionRef} aria-label="Slide previews" className="flex min-h-0 flex-col gap-4">
@@ -120,7 +129,8 @@ export function PresenterPreviews({ deck, position, template }: PresenterPreview
         ) : (
           <div
             data-presenter-end
-            className="flex aspect-[1920/1016] w-full items-center justify-center rounded-lg border-2 border-dashed border-presenter-border text-[22px] font-bold text-presenter-muted"
+            className="flex w-full items-center justify-center rounded-lg border-2 border-dashed border-presenter-border text-[22px] font-bold text-presenter-muted"
+            style={{ aspectRatio: `${STAGE_WIDTH} / ${slideAreaHeight}` }}
           >
             End of deck
           </div>

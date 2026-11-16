@@ -4,6 +4,8 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineDeck, defineSlide } from "../../../core/player/deck";
 import { PresenterPreviews, previewWidths } from "../../../core/presenter/PresenterPreviews";
+import { DEFAULT_FOOTER_HEIGHT } from "../../../core/template/footer-height";
+import { testTemplate } from "../../support/testTemplate";
 
 const Component = () => null;
 const deck = defineDeck({
@@ -44,6 +46,7 @@ describe("preview pair sizing", () => {
       currentLabelHeight: 20,
       nextLabelHeight: 20,
       gap: 16,
+      aspect: ASPECT,
     });
     expect(current).toBeCloseTo(((1000 - 40 - 48) / 1.8) * ASPECT, 6);
     expect(next).toBeCloseTo(current * 0.8, 6);
@@ -57,6 +60,7 @@ describe("preview pair sizing", () => {
       currentLabelHeight: 20,
       nextLabelHeight: 20,
       gap: 16,
+      aspect: ASPECT,
     });
     expect(current).toBe(500);
     expect(next).toBe(400);
@@ -70,6 +74,7 @@ describe("preview pair sizing", () => {
       currentLabelHeight: 20,
       nextLabelHeight: 20,
       gap: 16,
+      aspect: ASPECT,
     });
     expect(current).toBe(0);
     expect(next).toBe(0);
@@ -110,5 +115,28 @@ describe("presenter preview areas", () => {
 
     const section = container.querySelector<HTMLElement>('[aria-label="Slide previews"]');
     expect(section?.querySelector("[data-presenter-end]")).toBeTruthy();
+  });
+
+  it("sizes the placeholder by the template's footer height", () => {
+    vi.stubGlobal("ResizeObserver", ResizeObserverStub);
+    const { container } = render(
+      <PresenterPreviews
+        deck={deck}
+        position={lastStep}
+        template={testTemplate({ footerHeight: 120 })}
+      />,
+    );
+
+    // A 120px footer leaves 960 stage pixels: the placeholder mirrors that aspect.
+    const placeholder = container.querySelector<HTMLElement>("[data-presenter-end]");
+    expect(placeholder?.style.aspectRatio).toBe("1920 / 960");
+  });
+
+  it("keeps the default aspect for previewing without a template", () => {
+    vi.stubGlobal("ResizeObserver", ResizeObserverStub);
+    const { container } = render(<PresenterPreviews deck={deck} position={lastStep} />);
+
+    const placeholder = container.querySelector<HTMLElement>("[data-presenter-end]");
+    expect(placeholder?.style.aspectRatio).toBe(`1920 / ${1080 - DEFAULT_FOOTER_HEIGHT}`);
   });
 });

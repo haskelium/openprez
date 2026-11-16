@@ -28,6 +28,17 @@ const Brand = ({ className }: FooterBrandProps) =>
   createElement("img", { className, src: "/brand.svg", alt: "Custom brand" });
 
 describe("presentation footers", () => {
+  it("renders no top border on live or PDF footers", () => {
+    for (const markup of [
+      renderToStaticMarkup(createElement(Footer, { controls, date: new Date(2026, 9, 14) })),
+      renderToStaticMarkup(
+        createElement(ExportFooter, { date: new Date(2026, 9, 14), page: 4, total: 9 }),
+      ),
+    ]) {
+      expect(markup).not.toContain("border-t");
+    }
+  });
+
   it("defaults to the OpenPrez mark in live and PDF footers", () => {
     for (const markup of [
       renderToStaticMarkup(createElement(Footer, { controls, date: new Date(2026, 9, 14) })),

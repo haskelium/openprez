@@ -1,15 +1,10 @@
 import type { RefObject } from "react";
 import type { PresentationTemplate } from "../template/contract";
+import { resolveFooterHeight } from "../template/footer-height";
 import { toneStyleVariables } from "../template/style";
 import type { Slide } from "./deck";
 import { ExportModeContext } from "./export-context";
-import {
-  FOOTER_HEIGHT,
-  SLIDE_AREA_HEIGHT,
-  STAGE_HEIGHT,
-  STAGE_WIDTH,
-  StageScaleContext,
-} from "./Stage";
+import { SlideAreaContext, STAGE_HEIGHT, STAGE_WIDTH, StageScaleContext } from "./Stage";
 import { StepContext } from "./step-context";
 
 export interface ExportStageProps {
@@ -34,6 +29,7 @@ export function ExportStage({
   template,
 }: ExportStageProps) {
   const slideProps = { step, steps: slide.steps };
+  const footerHeight = resolveFooterHeight(template);
 
   return (
     <div
@@ -63,29 +59,33 @@ export function ExportStage({
         }}
       >
         <StageScaleContext.Provider value={1}>
-          <div
-            data-slide-area
-            data-slide={slide.id}
-            className="relative overflow-hidden"
-            style={{ height: SLIDE_AREA_HEIGHT, contain: "layout paint" }}
+          <SlideAreaContext.Provider
+            value={{ width: STAGE_WIDTH, height: STAGE_HEIGHT - footerHeight }}
           >
-            <ExportModeContext.Provider value>
-              <StepContext.Provider value={slideProps}>
-                <slide.Component step={step} steps={slide.steps} />
-              </StepContext.Provider>
-            </ExportModeContext.Provider>
-          </div>
-          <ExportModeContext.Provider value>
-            <div data-footer-area style={{ height: FOOTER_HEIGHT }}>
-              <template.ExportFooter
-                date={date}
-                copyrightNotice={copyrightNotice}
-                page={page}
-                total={total}
-                Brand={template.FooterBrand}
-              />
+            <div
+              data-slide-area
+              data-slide={slide.id}
+              className="relative overflow-hidden"
+              style={{ height: STAGE_HEIGHT - footerHeight, contain: "layout paint" }}
+            >
+              <ExportModeContext.Provider value>
+                <StepContext.Provider value={slideProps}>
+                  <slide.Component step={step} steps={slide.steps} />
+                </StepContext.Provider>
+              </ExportModeContext.Provider>
             </div>
-          </ExportModeContext.Provider>
+            <ExportModeContext.Provider value>
+              <div data-footer-area style={{ height: footerHeight }}>
+                <template.ExportFooter
+                  date={date}
+                  copyrightNotice={copyrightNotice}
+                  page={page}
+                  total={total}
+                  Brand={template.FooterBrand}
+                />
+              </div>
+            </ExportModeContext.Provider>
+          </SlideAreaContext.Provider>
         </StageScaleContext.Provider>
       </div>
     </div>

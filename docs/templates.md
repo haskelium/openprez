@@ -14,6 +14,12 @@ A template provides:
 
 Templates reuse generic shell components such as `NavigationButtons`, `ActionButton`, `AutoAdvanceIndicator`, and `Logo`. They must preserve the eight actions, their order, tooltips, pressed states, and auto-hide behavior. The live footer places `AutoAdvanceIndicator` where the template chooses; it renders the current step's auto-advance countdown and renders nothing when the step has no duration. Keep player error alerts outside `.footer-actions`, so a popup, presenter-support, or export error stays visible when the actions auto-hide. Export footers omit live errors and every interactive action.
 
+## Footer height
+
+Set the optional `footerHeight` (stage pixels) on `PresentationTemplate` to choose how much of the fixed 1920x1080 stage the footer band takes; the slide area fills the remainder. Omitted declarations keep the 64px default. The value must be a positive integer no greater than 540 (half the stage); the player reports an invalid declaration and refuses to render instead of showing a broken split. Live slides, presenter previews and exported PDF pages all share the same declared height.
+
+Slide content that sizes its layout against the slide area should call `useSlideArea()` from `@core` (width 1920, height `1080 − footerHeight`) instead of assuming the old fixed 1016 area; the exported `SLIDE_AREA_HEIGHT` constant was removed.
+
 ## Footer brand mark
 
 Set the optional `PresentationTemplate.FooterBrand` component to replace the footer's OpenPrez logo in both live slides and PDF pages. Omit it to retain the OpenPrez logo. This setting affects only the footer mark, not title-slide logos, copyright copy, navigation, dates or counters.

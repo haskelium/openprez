@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { EASE_OUT } from "../components/motion";
 import { usePresenterWindow } from "../presenter/usePresenterWindow";
 import type { PresentationTemplate } from "../template/contract";
+import { resolveFooterHeight } from "../template/footer-height";
 import { toneStyleVariables } from "../template/style";
 import type { NavigationControls } from "./controls";
 import { formatCopyrightNotice } from "./copyrightNotice";
@@ -107,6 +108,7 @@ export function Player({ deck, template }: PlayerProps) {
       <Stage
         tone={slide.tone}
         toneStyle={toneStyleVariables(template, slide.tone)}
+        footerHeight={resolveFooterHeight(template)}
         slideArea={
           // Not initial={false} here: Motion would pass it down and silence the opening slide's own
           // entrance animations. Only the slide container skips its transition on first mount.

@@ -20,7 +20,7 @@ Steps are 1-based. The slide component receives the current `step` and total `st
 
 ## Visual and export rules
 
-- Render within the fixed `1920x1016` slide area; never cover the footer.
+- Render within the fixed slide area above the footer — never cover the footer. The active template's `footerHeight` sets the footer band's height (64px by default); `useSlideArea()` from `@core` gives slides the exact area dimensions.
 - Use the active template's named tones rather than hardcoding shared surface colors.
 - Prefer SVG-native shapes and text for diagrams that must export cleanly.
 - Use `useExportMode()` for custom animation that needs a settled PDF state.
