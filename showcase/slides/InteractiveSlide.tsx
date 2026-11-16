@@ -14,6 +14,7 @@ import {
   type SetStateAction,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -236,7 +237,11 @@ export function InteractiveSlide() {
   const exportMode = useExportMode();
   const stageScale = useContext(StageScaleContext);
   const slideArea = useSlideArea();
-  const arenaSize: Arena = { width: ARENA_WIDTH, height: slideArea.height };
+  // Stable identity across re-renders: the playground effect keys on it.
+  const arenaSize: Arena = useMemo(
+    () => ({ width: ARENA_WIDTH, height: slideArea.height }),
+    [slideArea.height],
+  );
   const arenaRef = useRef<HTMLDivElement>(null);
   const elements = useRef<(HTMLDivElement | null)[]>([]);
   const [mode, setMode] = useState<PlaygroundMode>("composed");
